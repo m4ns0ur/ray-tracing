@@ -1,1 +1,1 @@
-# ray-tracing
+# Ray Tracing
