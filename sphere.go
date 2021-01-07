@@ -9,13 +9,15 @@ type Sphere struct {
 	*HitRecord
 	Center *Point3
 	Radius float64
+	Mat    Materialer
 }
 
 // NewSphere creats a new sphere.
-func NewSphere(c *Point3, r float64) *Sphere {
+func NewSphere(c *Point3, r float64, m Materialer) *Sphere {
 	return &Sphere{
 		Center: c,
 		Radius: r,
+		Mat:    m,
 	}
 }
 
@@ -45,6 +47,7 @@ func (s *Sphere) Hit(r *Ray, tMin, tMax float64, rec *HitRecord) bool {
 	rec.P = r.At(rec.T)
 	outwardNormal := rec.P.Sub(s.Center).Div(s.Radius).ToVec3()
 	rec.SetFaceNormal(r, outwardNormal)
+	rec.Mat = s.Mat
 
 	return true
 }

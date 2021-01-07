@@ -94,6 +94,15 @@ func (v *Vec3) Add(v2 *Vec3) *Vec3 {
 	}
 }
 
+// Sub subtracts v2 items from vector items.
+func (v *Vec3) Sub(v2 *Vec3) *Vec3 {
+	return &Vec3{
+		X: v.X - v2.X,
+		Y: v.Y - v2.Y,
+		Z: v.Z - v2.Z,
+	}
+}
+
 // Mul multiplies v and v2 items.
 func (v *Vec3) Mul(v2 *Vec3) *Vec3 {
 	return &Vec3{
@@ -148,4 +157,35 @@ func (v *Vec3) Cross(v2 *Vec3) *Vec3 {
 // UnitVector returns unit vector of v.
 func (v *Vec3) UnitVector() *Vec3 {
 	return v.Div(v.Len())
+}
+
+// NearZero returns true if all items of vector are near zero.
+func (v *Vec3) NearZero() bool {
+	const s = 1e-8
+	return (math.Abs(v.X) < s) && (math.Abs(v.Y) < s) && (math.Abs(v.Z) < s)
+}
+
+// Reflect calculates the reflection vector based on n vector.
+func (v *Vec3) Reflect(n *Vec3) *Vec3 {
+	return v.Sub(n.Mult(2 * v.Dot(n)))
+}
+
+// Refract calculates the refraction vector based on n vector and etai.
+func (v *Vec3) Refract(n *Vec3, etaiOverEtat float64) *Vec3 {
+	cosTheta := math.Min(v.Neg().Dot(n), 1.0)
+	rOutPerp := v.Add(n.Mult(cosTheta)).Mult(etaiOverEtat)
+	rOutParallel := n.Mult(-math.Sqrt(math.Abs(1.0 - rOutPerp.SquaredLen())))
+	return rOutPerp.Add(rOutParallel)
+}
+
+// RandomInUnitDisk generate random vector in a unit disk.
+func RandomInUnitDisk() *Vec3 {
+	for true {
+		p := &Vec3{RandFloat(-1, 1), RandFloat(-1, 1), 0}
+		if p.SquaredLen() >= 1 {
+			continue
+		}
+		return p
+	}
+	return nil
 }

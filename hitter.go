@@ -4,11 +4,12 @@ package main
 type HitRecord struct {
 	P         *Point3
 	Normal    *Vec3
+	Mat       Materialer
 	T         float64
 	FrontFace bool
 }
 
-// Hitter is any object which ray tracing hit it.
+// Hitter is any object that's going to check if ray hits it.
 type Hitter interface {
 	Hit(r *Ray, tMin, tMax float64, rec *HitRecord) bool
 }
@@ -34,14 +35,14 @@ func (hl *HitterList) Add(h Hitter) {
 	hl.Hitters = append(hl.Hitters, h)
 }
 
-// Clear empty the hittter list.
+// Clear makes the hittter list empty.
 func (hl *HitterList) Clear() {
 	hl.Hitters = nil
 }
 
-// Hit returns true if ray trace hits the hitter list.
+// Hit returns true if ray hits anything in the hitter list.
 func (hl *HitterList) Hit(r *Ray, tMin, tMax float64, rec *HitRecord) (bool, *HitRecord) {
-	tempRec := &HitRecord{}
+	tempRec := new(HitRecord)
 	hitAnything := false
 	closestSoFar := tMax
 

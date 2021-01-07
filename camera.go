@@ -1,37 +1,51 @@
 package main
 
+import "math"
+
 // Camera is a camera.
 type Camera struct {
 	Origin          *Point3
+	LowerLeftCorner *Point3
 	Horizontal      *Vec3
 	Vertical        *Vec3
-	LowerLeftCorner *Point3
+	U               *Vec3
+	V               *Vec3
+	W               *Vec3
+	LensRadius      float64
 }
 
-// NewCamera creats a new camera.
-func NewCamera() *Camera {
-	aspectRatio := 16.0 / 9.0
-	viewPortHeight := 2.0
+// NewCamera creats a new camera. vFov is vertical field-of-view in degrees.
+func NewCamera(lookFrom, lookAt *Point3, up *Vec3, fov, aspectRatio, aperture, focusDist float64) *Camera {
+	theta := ToRadians(fov)
+	h := math.Tan(theta / 2)
+	viewPortHeight := 2.0 * h
 	viewPortWidth := aspectRatio * viewPortHeight
-	focalLen := 1.0
-
-	origin := &Point3{0, 0, 0}
-	horizontal := &Vec3{viewPortWidth, 0, 0}
-	vertical := &Vec3{0, viewPortHeight, 0}
-	lowerLeftCorner := origin.Subv(horizontal.Div(2)).Subv(vertical.Div(2)).Subv(&Vec3{0, 0, focalLen})
-
+	w := lookFrom.Sub(lookAt).ToVec3().UnitVector()
+	u := up.Cross(w).UnitVector()
+	v := w.Cross(u)
+	origin := lookFrom
+	horizontal := u.Mult(viewPortWidth * focusDist)
+	vertical := v.Mult(viewPortHeight * focusDist)
+	lowerLeftCorner := origin.Subv(horizontal.Div(2)).Subv(vertical.Div(2)).Subv(w.Mult(focusDist))
+	lensRadius := aperture / 2
 	return &Camera{
 		Origin:          origin,
+		LowerLeftCorner: lowerLeftCorner,
 		Horizontal:      horizontal,
 		Vertical:        vertical,
-		LowerLeftCorner: lowerLeftCorner,
+		U:               u,
+		V:               v,
+		W:               w,
+		LensRadius:      lensRadius,
 	}
 }
 
-// Ray generates camera ray by u, v.
-func (c *Camera) Ray(u, v float64) *Ray {
+// Ray generates camera ray by s, t.
+func (c *Camera) Ray(s, t float64) *Ray {
+	rd := RandomInUnitDisk().Mult(c.LensRadius)
+	offset := c.U.Mult(rd.X).Add(c.V.Mult(rd.Y))
 	return &Ray{
-		Orig: c.Origin,
-		Dir:  c.LowerLeftCorner.Addv(c.Horizontal.Mult(u)).Addv(c.Vertical.Mult(v)).Sub(c.Origin).ToVec3(),
+		Orig: c.Origin.Addv(offset),
+		Dir:  c.LowerLeftCorner.Addv(c.Horizontal.Mult(s)).Addv(c.Vertical.Mult(t)).Sub(c.Origin).Sub(offset.ToPoint3()).ToVec3(),
 	}
 }
