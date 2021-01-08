@@ -13,8 +13,8 @@ type Vec3 struct {
 	Z float64
 }
 
-// Random generate a random Vec3.
-func Random() *Vec3 {
+// NewRandomVec3 generate a random Vec3.
+func NewRandomVec3() *Vec3 {
 	return &Vec3{
 		X: rand.Float64(),
 		Y: rand.Float64(),
@@ -22,8 +22,8 @@ func Random() *Vec3 {
 	}
 }
 
-// RandomInRange generate a random Vec3 in range of min and max.
-func RandomInRange(min, max float64) *Vec3 {
+// NewRandomInRangeVec3 generate a random Vec3 in range of min and max.
+func NewRandomInRangeVec3(min, max float64) *Vec3 {
 	return &Vec3{
 		X: RandFloat(min, max),
 		Y: RandFloat(min, max),
@@ -31,10 +31,10 @@ func RandomInRange(min, max float64) *Vec3 {
 	}
 }
 
-// RandomInUnitSphere generate a random vector in unit sphere.
-func RandomInUnitSphere() *Vec3 {
+// NewRandomInUnitSphereVec3 generate a random vector in unit sphere.
+func NewRandomInUnitSphereVec3() *Vec3 {
 	for true {
-		p := RandomInRange(-1, 1)
+		p := NewRandomInRangeVec3(-1, 1)
 		if p.SquaredLen() >= 1 {
 			continue
 		}
@@ -43,19 +43,31 @@ func RandomInUnitSphere() *Vec3 {
 	return nil
 }
 
-// RandomUnitVector generates a random unit vector.
-func RandomUnitVector() *Vec3 {
-	return RandomInUnitSphere().UnitVector()
+// NewRandomUnitVec3 generates a random unit vector.
+func NewRandomUnitVec3() *Vec3 {
+	return NewRandomInUnitSphereVec3().UnitVector()
 }
 
-// RandomInHemisphere generates a random vector in hemisphere.
-func RandomInHemisphere(normal *Vec3) *Vec3 {
-	inUnitSphere := RandomInUnitSphere()
-	// In the same hemisphere as the normal
+// NewRandomInHemisphereVec3 generates a random vector in hemisphere.
+func NewRandomInHemisphereVec3(normal *Vec3) *Vec3 {
+	inUnitSphere := NewRandomInUnitSphereVec3()
+	// In the same hemisphere as the normal.
 	if inUnitSphere.Dot(normal) > 0.0 {
 		return inUnitSphere
 	}
 	return inUnitSphere.Neg()
+}
+
+// NewRandomInUnitDiskVec3 generate random vector in a unit disk.
+func NewRandomInUnitDiskVec3() *Vec3 {
+	for {
+		p := &Vec3{RandFloat(-1, 1), RandFloat(-1, 1), 0}
+		if p.SquaredLen() >= 1 {
+			continue
+		}
+		return p
+	}
+	return nil
 }
 
 // ToPoint3 converts p to a Vec3.
@@ -68,8 +80,8 @@ func (v *Vec3) ToPoint3() *Point3 {
 }
 
 // ToColor converts v to a Color.
-func (v *Vec3) ToColor() Color {
-	return Color{
+func (v *Vec3) ToColor() *Color {
+	return &Color{
 		R: v.X,
 		G: v.Y,
 		B: v.Z,
@@ -136,10 +148,6 @@ func (v *Vec3) Len() float64 {
 	return math.Sqrt(v.SquaredLen())
 }
 
-func (v Vec3) String() string {
-	return fmt.Sprintf("%f %f %f", v.X, v.Y, v.Z)
-}
-
 // Dot calculates u and v dot product.
 func (v *Vec3) Dot(v2 *Vec3) float64 {
 	return v.X*v2.X + v.Y*v2.Y + v.Z*v2.Z
@@ -178,14 +186,6 @@ func (v *Vec3) Refract(n *Vec3, etaiOverEtat float64) *Vec3 {
 	return rOutPerp.Add(rOutParallel)
 }
 
-// RandomInUnitDisk generate random vector in a unit disk.
-func RandomInUnitDisk() *Vec3 {
-	for true {
-		p := &Vec3{RandFloat(-1, 1), RandFloat(-1, 1), 0}
-		if p.SquaredLen() >= 1 {
-			continue
-		}
-		return p
-	}
-	return nil
+func (v Vec3) String() string {
+	return fmt.Sprintf("%f %f %f", v.X, v.Y, v.Z)
 }

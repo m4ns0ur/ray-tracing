@@ -12,22 +12,12 @@ type Sphere struct {
 	Mat    Materialer
 }
 
-// NewSphere creats a new sphere.
-func NewSphere(c *Point3, r float64, m Materialer) *Sphere {
-	return &Sphere{
-		Center: c,
-		Radius: r,
-		Mat:    m,
-	}
-}
-
-// Hit returns true if ray trace hits the sphere.
+// Hit returns true if ray hits the sphere.
 func (s *Sphere) Hit(r *Ray, tMin, tMax float64, rec *HitRecord) bool {
 	oc := r.Orig.Sub(s.Center)
 	a := r.Dir.SquaredLen()
 	halfB := oc.Dot(r.Dir.ToPoint3())
 	c := oc.ToVec3().SquaredLen() - s.Radius*s.Radius
-
 	discriminant := halfB*halfB - a*c
 	if discriminant < 0 {
 		return false
@@ -48,6 +38,5 @@ func (s *Sphere) Hit(r *Ray, tMin, tMax float64, rec *HitRecord) bool {
 	outwardNormal := rec.P.Sub(s.Center).Div(s.Radius).ToVec3()
 	rec.SetFaceNormal(r, outwardNormal)
 	rec.Mat = s.Mat
-
 	return true
 }
