@@ -87,7 +87,7 @@ func rayColor(r *Ray, world *HitterList, depth int) *Color {
 func randomScene() *HitterList {
 	world := new(HitterList)
 	groundMaterial := &Lambertian{&Color{0.5, 0.5, 0.5}}
-	world.Add(NewSphere(&Point3{0, -1000, 0}, 1000, groundMaterial))
+	world.Add(&Sphere{new(HitRecord), &Point3{0, -1000, 0}, 1000, groundMaterial})
 
 	for a := -11; a < 11; a++ {
 		for b := -11; b < 11; b++ {
@@ -98,30 +98,30 @@ func randomScene() *HitterList {
 					// Diffuse.
 					albedo := RandomColor().Mul(RandomColor())
 					sphereMaterial := &Lambertian{albedo}
-					world.Add(NewSphere(center, 0.2, sphereMaterial))
+					world.Add(&Sphere{new(HitRecord), center, 0.2, sphereMaterial})
 				} else if chooseMat < 0.95 {
 					// Metal.
 					albedo := RandomColorInRange(0.5, 1)
 					fuzz := RandFloat(0, 0.5)
 					sphereMaterial := NewMetal(albedo, fuzz)
-					world.Add(NewSphere(center, 0.2, sphereMaterial))
+					world.Add(&Sphere{new(HitRecord), center, 0.2, sphereMaterial})
 				} else {
 					// Glass.
 					sphereMaterial := &Dielectric{1.5}
-					world.Add(NewSphere(center, 0.2, sphereMaterial))
+					world.Add(&Sphere{new(HitRecord), center, 0.2, sphereMaterial})
 				}
 			}
 		}
 	}
 
 	material1 := &Dielectric{1.5}
-	world.Add(NewSphere(&Point3{0, 1, 0}, 1.0, material1))
+	world.Add(&Sphere{new(HitRecord), &Point3{0, 1, 0}, 1.0, material1})
 
 	material2 := &Lambertian{&Color{0.4, 0.2, 0.1}}
-	world.Add(NewSphere(&Point3{-4, 1, 0}, 1.0, material2))
+	world.Add(&Sphere{new(HitRecord), &Point3{-4, 1, 0}, 1.0, material2})
 
 	material3 := NewMetal(&Color{0.7, 0.6, 0.5}, 0.0)
-	world.Add(NewSphere(&Point3{4, 1, 0}, 1.0, material3))
+	world.Add(&Sphere{new(HitRecord), &Point3{4, 1, 0}, 1.0, material3})
 
 	return world
 }

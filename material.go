@@ -17,7 +17,7 @@ type Lambertian struct {
 
 // Scatter returns always true since lambertian reflectance material scatters the light.
 func (l *Lambertian) Scatter(rIn *Ray, rec *HitRecord) (ok bool, attenuation *Color, scattered *Ray) {
-	scatterDirection := rec.Normal.Add(RandomUnitVector())
+	scatterDirection := rec.Normal.Add(NewRandomUnitVec3())
 
 	// Catch degenerate scatter direction
 	if scatterDirection.NearZero() {
@@ -47,7 +47,7 @@ func NewMetal(c *Color, f float64) *Metal {
 // Scatter returns true if metal material scatters the light.
 func (m *Metal) Scatter(rIn *Ray, rec *HitRecord) (ok bool, attenuation *Color, scattered *Ray) {
 	reflected := rIn.Dir.UnitVector().Reflect(rec.Normal)
-	scattered = &Ray{rec.P, reflected.Add(RandomInUnitSphere().Mult(m.Fuzz))}
+	scattered = &Ray{rec.P, reflected.Add(NewRandomInUnitSphereVec3().Mult(m.Fuzz))}
 	return scattered.Dir.Dot(rec.Normal) > 0, m.Albedo, scattered
 }
 

@@ -1,6 +1,6 @@
 package main
 
-//Ray is a ray line in 3D dimension.
+// Ray is a ray line in 3D dimension.
 type Ray struct {
 	Orig *Point3
 	Dir  *Vec3

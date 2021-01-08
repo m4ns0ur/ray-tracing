@@ -42,7 +42,7 @@ func NewCamera(lookFrom, lookAt *Point3, up *Vec3, fov, aspectRatio, aperture, f
 
 // Ray generates camera ray by s, t.
 func (c *Camera) Ray(s, t float64) *Ray {
-	rd := RandomInUnitDisk().Mult(c.LensRadius)
+	rd := NewRandomInUnitDiskVec3().Mult(c.LensRadius)
 	offset := c.U.Mult(rd.X).Add(c.V.Mult(rd.Y))
 	return &Ray{
 		Orig: c.Origin.Addv(offset),
