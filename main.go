@@ -5,12 +5,14 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"runtime"
 	"strconv"
 	"time"
 )
 
 func main() {
 	log.SetFlags(0)
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	render()
 }
 
@@ -49,6 +51,9 @@ func render() {
 	width := float64(imageWidth - 1)
 	height := float64(imageHeight - 1)
 
+	cr := make(chan *Ray, samplesPerPixel)
+	cc := make(chan *Color, samplesPerPixel)
+
 	for j := imageHeight - 1; j >= 0; j-- {
 		fmt.Printf("\rScanlines remaining: %d ", j)
 		for i := 0; i < imageWidth; i++ {
@@ -56,32 +61,41 @@ func render() {
 			for s := 0; s < samplesPerPixel; s++ {
 				u := (float64(i) + rand.Float64()) / width
 				v := (float64(j) + rand.Float64()) / height
-				r := cam.Ray(u, v)
-				c = c.Add(rayColor(r, world, maxDepth))
+				go cam.Ray(u, v, cr)
+				go rayColor(<-cr, world, maxDepth, cc)
+				c = c.Add(<-cc)
 			}
 			c.Write(f, samplesPerPixel)
 		}
 	}
 
+	close(cr)
+	close(cc)
+
 	fmt.Printf("\nDone.\n")
 }
 
-func rayColor(r *Ray, world *HitterList, depth int) *Color {
+func rayColor(r *Ray, world *HitterList, depth int, cc chan *Color) {
 	// If we've exceeded the ray bounce limit, no more light is gathered.
 	if depth <= 0 {
-		return &Color{0, 0, 0}
+		cc <- &Color{0, 0, 0}
+		return
 	}
 	if ok, rec := world.Hit(r, 0.001, Infinity, new(HitRecord)); ok {
 		if ok, attenuation, scattered := rec.Mat.Scatter(r, rec); ok {
-			return attenuation.Mul(rayColor(scattered, world, depth-1))
+			go rayColor(scattered, world, depth-1, cc)
+			cc <- attenuation.Mul(<-cc)
+			return
 		}
-		return &Color{0, 0, 0}
+		cc <- &Color{0, 0, 0}
+		return
 	}
 	unitVecDir := r.Dir.UnitVector()
 	t := 0.5 * (unitVecDir.Y + 1.0)
 	cw := &Color{1.0, 1.0, 1.0}
 	cb := &Color{0.5, 0.7, 1.0}
-	return cw.Mult(1.0 - t).Add(cb.Mult(t))
+	cc <- cw.Mult(1.0 - t).Add(cb.Mult(t))
+	return
 }
 
 func randomScene() *HitterList {
