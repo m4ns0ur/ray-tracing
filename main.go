@@ -19,7 +19,7 @@ func render() {
 	const aspectRatio = 3.0 / 2.0
 	const imageWidth = 1200
 	const imageHeight = int(float64(imageWidth) / aspectRatio)
-	const samplesPerPixel = 1 //500
+	const samplesPerPixel = 500 // 1 for faster rendering.
 	const maxDepth = 50
 
 	// World.
